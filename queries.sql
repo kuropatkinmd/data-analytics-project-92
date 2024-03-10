@@ -4,7 +4,6 @@ SELECT
 FROM
 	customers;
 
-
 --Данный запрос определяет десятку лучших продавцов по суммарной выручке. Также содержит информацию о количестве операций каждого из них.
 SELECT
 	(first_name || ' ' || last_name) AS name,
@@ -79,3 +78,89 @@ FROM
 ORDER BY
 	dow,
 	name;
+
+--Данный запрос выводит количество покупателей в разных возрастных группах: 16-25, 26-40 и 40+. Сортировка по возрастным группам
+SELECT
+	CASE
+		WHEN age BETWEEN 16 AND 25 THEN '16-25'
+		WHEN age BETWEEN 26 AND 40 THEN '26-40'
+		WHEN age > 40 THEN '40+'
+	END AS age_category,
+	COUNT(*)
+FROM
+	customers
+GROUP BY
+	age_category
+ORDER BY
+	age_category;
+
+--Данный запрос выводит данные по количеству уникальных покупателей и выручке за месяц. Сортировка по дате по возрастанию.
+select
+	to_char(sale_date,'YYYY-MM') as date,
+	count (distinct customer_id) as total_customers,
+	FLOOR(SUM(s.quantity * p.price)) as income
+from
+	sales s
+join products p
+on
+		s.product_id = p.product_id
+group by
+	date
+order by
+	date;
+
+--Данный запрос предоставляет отчет о покупателях, первая покупка которых была в ходе проведения акций (акционные товары отпускали со стоимостью равной 0) с данными о дате и продавце. 
+--Сортировка по id.
+with tab as(
+select
+	s.customer_id as id,
+	(c.first_name || ' ' || c.last_name) as customer,
+	min(s.sale_date) as sale_date
+from
+	sales s
+left join customers c 
+on
+	s.customer_id = c.customer_id
+left join employees e
+on
+	s.sales_person_id = e.employee_id
+left join products p
+on
+	s.product_id = p.product_id
+where
+	price = 0
+group by
+	id,
+	customer),
+tab2 as 
+    (
+select
+	(c.first_name || ' ' || c.last_name) as customer,
+	min(s.sale_date) as sale_date,
+	(e.first_name || ' ' || e.last_name) as seller
+from
+	sales s
+left join customers c on
+	s.customer_id = c.customer_id
+left join employees e on
+	e.employee_id = s.sales_person_id
+group by
+	(c.first_name || ' ' || c.last_name),
+	(e.first_name || ' ' || e.last_name)
+    )
+    select
+	tab.customer,
+	tab.sale_date,
+	tab2.seller
+from
+	tab
+inner join tab2 on
+	tab.customer = tab2.customer
+	and tab.sale_date = tab2.sale_date
+group by
+	tab.id,
+	tab.customer,
+	tab.sale_date,
+	tab2.seller
+order by
+	tab.id;
