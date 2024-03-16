@@ -111,11 +111,12 @@ order by
 
 --Данный запрос предоставляет отчет о покупателях, первая покупка которых была в ходе проведения акций (акционные товары отпускали со стоимостью равной 0) с данными о дате и продавце. 
 --Сортировка по id.
-with tab as(
 select
-	s.customer_id as id,
-	(c.first_name || ' ' || c.last_name) as customer,
-	min(s.sale_date) as sale_date
+	distinct on
+	(c.customer_id)
+    c.first_name || ' ' || c.last_name as customer,
+	sale_date,
+	e.first_name || ' ' || e.last_name as seller
 from
 	sales s
 left join customers c 
@@ -128,39 +129,7 @@ left join products p
 on
 	s.product_id = p.product_id
 where
-	price = 0
-group by
-	id,
-	customer),
-tab2 as 
-    (
-select
-	(c.first_name || ' ' || c.last_name) as customer,
-	min(s.sale_date) as sale_date,
-	(e.first_name || ' ' || e.last_name) as seller
-from
-	sales s
-left join customers c on
-	s.customer_id = c.customer_id
-left join employees e on
-	e.employee_id = s.sales_person_id
-group by
-	(c.first_name || ' ' || c.last_name),
-	(e.first_name || ' ' || e.last_name)
-    )
-    select
-	tab.customer,
-	tab.sale_date,
-	tab2.seller
-from
-	tab
-inner join tab2 on
-	tab.customer = tab2.customer
-	and tab.sale_date = tab2.sale_date
-group by
-	tab.id,
-	tab.customer,
-	tab.sale_date,
-	tab2.seller
+	p.price = 0
 order by
-	tab.id;
+	c.customer_id,
+	sale_date;
