@@ -6,7 +6,7 @@ FROM
 
 --Данный запрос определяет десятку лучших продавцов по суммарной выручке. Также содержит информацию о количестве операций каждого из них.
 SELECT
-	first_name || ' ' || last_name AS name,
+	first_name || ' ' || last_name AS seller,
 	COUNT (sales_person_id) AS operations,
 	FLOOR(SUM(s.quantity * p.price)) AS income
 FROM
@@ -26,7 +26,7 @@ LIMIT 10;
 --Данный содержит информацию о продавцах, чья средняя выручка за сделку меньше средней выручки за сделку по всем продавцам.
 --Таблица отсортирована по выручке по возрастанию.
 SELECT
-	first_name || ' ' || last_name AS name,
+	first_name || ' ' || last_name AS seller,
 	FLOOR(AVG(s.quantity * p.price)) AS average_income
 FROM
 	employees e
@@ -53,8 +53,8 @@ ORDER BY
 --Данный запрос предостовляет информацию по суммарной выручке по дням недели по каждому продавцу.
 WITH tab AS (
 SELECT
-	e.first_name || ' ' || e.last_name as name,
-	TO_CHAR(s.sale_date, 'Day') as weekday,
+	e.first_name || ' ' || e.last_name as seller,
+	TO_CHAR(s.sale_date, 'Day') as day_of_week,
 	EXTRACT(ISODOW FROM	s.sale_date) AS dow,
 	FLOOR(SUM(s.quantity * p.price)) as income
 FROM
@@ -69,14 +69,14 @@ GROUP BY
 	1, 2, 3
 	)
 	SELECT
-	name,
-	lower(weekday) AS weekday,
+	seller,
+	lower(day_of_week) AS day_of_week,
 	income
 FROM
 	tab
 ORDER BY
 	dow,
-	name;
+	seller;
 
 --Данный запрос выводит количество покупателей в разных возрастных группах: 16-25, 26-40 и 40+. Сортировка по возрастным группам
 SELECT
@@ -85,7 +85,7 @@ SELECT
 		WHEN age BETWEEN 26 AND 40 THEN '26-40'
 		WHEN age > 40 THEN '40+'
 	END AS age_category,
-	COUNT(*)
+	COUNT(*) AS age_count
 FROM
 	customers
 GROUP BY
@@ -95,7 +95,7 @@ ORDER BY
 
 --Данный запрос выводит данные по количеству уникальных покупателей и выручке за месяц. Сортировка по дате по возрастанию.
 select
-	to_char(sale_date,'YYYY-MM') as date,
+	to_char(sale_date,'YYYY-MM') as selling_month,
 	count (distinct customer_id) as total_customers,
 	FLOOR(SUM(s.quantity * p.price)) as income
 from
@@ -106,7 +106,7 @@ on
 group by
 	1
 order by
-	date;
+	selling_month;
 
 --Данный запрос предоставляет отчет о покупателях, первая покупка которых была в ходе проведения акций (акционные товары отпускали со стоимостью равной 0) с данными о дате и продавце. 
 --Сортировка по id.
