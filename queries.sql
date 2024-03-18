@@ -24,7 +24,7 @@ ORDER BY
 LIMIT 10;
 
 /*Данный содержит информацию о продавцах,
-чья средняя выручка за сделку меньше средней 
+чья средняя выручка за сделку меньше средней
 выручки за сделку по всем продавцам.
 Таблица отсортирована по выручке по возрастанию.*/
 SELECT
@@ -99,44 +99,44 @@ GROUP BY
 ORDER BY
     age_category;
 
-/*Данный запрос выводит данные по количеству уникальных покупателей и выручке за месяц. 
-Сортировка по дате по возрастанию.*/
-select
-    to_char(s.sale_date, 'YYYY-MM') as selling_month,
-    count(distinct s.customer_id) as total_customers,
-    floor(sum(s.quantity * p.price)) as income
-from
-    sales as s
-inner join products as p
-    on
+/*Данный запрос выводит данные по количеству уникальных покупателей и
+выручке за месяц. Сортировка по дате по возрастанию.*/
+SELECT
+    TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
+    COUNT(DISTINCT s.customer_id) AS total_customers,
+    FLOOR(SUM(s.quantity * p.price)) AS income
+FROM
+    sales AS s
+INNER JOIN products AS p
+    ON
         s.product_id = p.product_id
-group by
+GROUP BY
     selling_month
-order by
+ORDER BY
     selling_month;
 
 /*Данный запрос предоставляет отчет о покупателях, первая покупка которых была
- * в ходе проведения акций (акционные товары отпускали
- * со стоимостью равной 0) с данными о дате и продавце.
- * Сортировка по id покупателя.*/
-select distinct on
+в ходе проведения акций (акционные товары отпускали
+со стоимостью равной 0) с данными о дате и продавце.
+Сортировка по id покупателя.*/
+SELECT DISTINCT ON
 (c.customer_id)
     s.sale_date,
-    c.first_name || ' ' || c.last_name as customer,
-    e.first_name || ' ' || e.last_name as seller
-from
-    sales as s
-left join customers as c
-    on
+    c.first_name || ' ' || c.last_name AS customer,
+    e.first_name || ' ' || e.last_name AS seller
+FROM
+    sales AS s
+LEFT JOIN customers AS c
+    ON
         s.customer_id = c.customer_id
-left join employees as e
-    on
+LEFT JOIN employees AS e
+    ON
         s.sales_person_id = e.employee_id
-left join products as p
-    on
+LEFT JOIN products AS p
+    ON
         s.product_id = p.product_id
-where
+WHERE
     p.price = 0
-order by
+ORDER BY
     c.customer_id,
     s.sale_date;
